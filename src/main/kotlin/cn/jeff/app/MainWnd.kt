@@ -9,7 +9,9 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 	override val root: BorderPane
 	private val j: MainWndJ
 
-	private val items = listOf("第一个", "第二个", "第三个").observable()
+	private val roleProperties = MutableList(8) {
+		RoleProperties()
+	}.observable()
 
 	init {
 		primaryStage.isResizable = false
@@ -22,7 +24,14 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 		j.k = this
 
 		j.mainPanel.center {
-			listview(items) {
+			listview(roleProperties) {
+				cellCache {
+					hbox {
+						label("${it.name} - ${it.level} 級")
+						button("設為1級")
+						button("修改")
+					}
+				}
 			}
 		}
 	}
