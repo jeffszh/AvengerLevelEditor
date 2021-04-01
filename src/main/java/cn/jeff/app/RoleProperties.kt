@@ -1,17 +1,35 @@
 package cn.jeff.app
 
 import java.io.RandomAccessFile
+import java.nio.charset.Charset
 
 data class RoleProperties(
 		var name: String = "",
 		var level: Int = 0
 ) {
 
-	val nameOffset = 0x0042
-	val levelOffset = 0x0160
-	val recordSize = 0x0127
+	companion object {
+		const val nameOffset = 0x00CE
+		const val levelOffset = 0x0160
+		const val recordSize = 0x0127
+		val charSet: Charset = Charset.forName("BIG5")
+	}
 
 	fun loadFromFile(file: RandomAccessFile, recordNo: Int) {
+		file.seek(recordNo.toLong() * recordSize + nameOffset)
+		val ba = mutableListOf<Byte>()
+		for (i in 0 until 8) {
+			val b = file.readByte()
+			if (b == 0.toByte()) {
+				break
+			} else {
+				ba.add(b)
+			}
+		}
+		name = ba.toByteArray().toString(charSet)
+
+		file.seek(recordNo.toLong() * recordSize + levelOffset)
+		level = file.readByte().toInt()
 	}
 
 	fun saveLevelToFile(file: RandomAccessFile, recordNo: Int) {
