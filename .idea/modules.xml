@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AvengerLevelEditor.iml" filepath="$PROJECT_DIR$/.idea/modules/AvengerLevelEditor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AvengerLevelEditor_main.iml" filepath="$PROJECT_DIR$/.idea/modules/AvengerLevelEditor_main.iml" group="AvengerLevelEditor" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AvengerLevelEditor_test.iml" filepath="$PROJECT_DIR$/.idea/modules/AvengerLevelEditor_test.iml" group="AvengerLevelEditor" />
+    </modules>
+  </component>
+</project>
