@@ -4,6 +4,7 @@ import java.io.RandomAccessFile
 import java.nio.charset.Charset
 
 data class RoleProperties(
+		val index: Int,
 		var name: String = "",
 		var level: Int = 0
 ) {
@@ -15,8 +16,8 @@ data class RoleProperties(
 		val charSet: Charset = Charset.forName("BIG5")
 	}
 
-	fun loadFromFile(file: RandomAccessFile, recordNo: Int) {
-		file.seek(recordNo.toLong() * recordSize + nameOffset)
+	fun loadFromFile(file: RandomAccessFile) {
+		file.seek(index.toLong() * recordSize + nameOffset)
 		val ba = mutableListOf<Byte>()
 		for (i in 0 until 8) {
 			val b = file.readByte()
@@ -28,11 +29,13 @@ data class RoleProperties(
 		}
 		name = ba.toByteArray().toString(charSet)
 
-		file.seek(recordNo.toLong() * recordSize + levelOffset)
+		file.seek(index.toLong() * recordSize + levelOffset)
 		level = file.readByte().toInt()
 	}
 
-	fun saveLevelToFile(file: RandomAccessFile, recordNo: Int) {
+	fun saveLevelToFile(file: RandomAccessFile) {
+		file.seek(index.toLong() * recordSize + levelOffset)
+		file.writeByte(level)
 	}
 
 }

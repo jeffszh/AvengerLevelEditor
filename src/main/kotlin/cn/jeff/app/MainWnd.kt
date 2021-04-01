@@ -18,7 +18,7 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 	private val j: MainWndJ
 
 	private val roleProperties = MutableList(10) {
-		RoleProperties("角色${it + 1}")
+		RoleProperties(it, "角色${it + 1}")
 	}.observable()
 
 	private lateinit var listView: ListView<RoleProperties>
@@ -35,11 +35,33 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 
 		j.mainPanel.center {
 			listView = listview(roleProperties) {
-				cellFormat {
+				cellFormat { role ->
 					graphic = hbox {
-						label("${it.name} 等級=${it.level}")
-						button("設為1級")
-						button("修改")
+						label(role.name)
+						val input = textfield(role.level.toString()) {
+							maxWidth = 80.0
+						}
+						button("修改") {
+							action {
+								val s = input.text
+								if (s.isInt()) {
+									role.level = s.toInt()
+									RandomAccessFile(defaultFileName, "rw").use { file ->
+										role.saveLevelToFile(file)
+									}
+								} else {
+									error("必須輸入數字！")
+								}
+							}
+						}
+						button("設為1級") {
+							action {
+								role.level = 1
+								RandomAccessFile(defaultFileName, "rw").use { file ->
+									role.saveLevelToFile(file)
+								}
+							}
+						}
 						alignment = Pos.CENTER_LEFT
 						paddingHorizontal = 30
 						spacing = 20.0
@@ -60,8 +82,8 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 	fun refresh() {
 //		information("刷新")
 		RandomAccessFile(defaultFileName, "r").use { file ->
-			roleProperties.forEachIndexed { index, roleProperties ->
-				roleProperties.loadFromFile(file, index)
+			roleProperties.forEach { roleProperties ->
+				roleProperties.loadFromFile(file)
 			}
 		}
 		listView.refresh()
