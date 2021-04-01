@@ -28,8 +28,8 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 
 		j.mainPanel.center {
 			listView = listview(roleProperties) {
-				cellCache {
-					hbox {
+				cellFormat {
+					graphic = hbox {
 						//						label("${it.name} - ${it.level} 級")
 						button(it.name)
 						label("等級=${it.level}")
