@@ -6,11 +6,9 @@ import javafx.fxml.FXMLLoader
 import javafx.geometry.Pos
 import javafx.scene.control.ListView
 import javafx.scene.layout.BorderPane
+import javafx.stage.FileChooser
 import tornadofx.*
-import java.io.FileReader
-import java.io.FileWriter
-import java.io.IOException
-import java.io.RandomAccessFile
+import java.io.*
 
 class MainWnd : View("复仇魔神角色等级编辑器") {
 
@@ -92,11 +90,15 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 	}
 
 	fun chooseFile() {
-//		information("标题", "选择文件吧。")
-		roleProperties[0].level = 123
-		roleProperties[1].level = 456
-		roleProperties[2].level = 789
-		listView.refresh()
+		val filter = FileChooser.ExtensionFilter("复仇魔神存档文件", "*.SAV")
+		val file = chooseFile("选择文件复仇魔神的存档文件", arrayOf(filter)) {
+			initialDirectory = File(".")
+		}
+		if (file.isNotEmpty()) {
+			workFilename.value = file[0].absolutePath
+			listView.refresh()
+			saveAppConfig()
+		}
 	}
 
 	fun refresh() {
