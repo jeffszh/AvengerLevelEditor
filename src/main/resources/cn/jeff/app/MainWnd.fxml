@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.TextField?>
 <BorderPane prefHeight="600.0" prefWidth="800.0" style="-fx-font-family: 'Courier New'; -fx-font-size: 20;"
 			xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
 			fx:controller="cn.jeff.app.MainWndJ">
 	<top>
-		<HBox alignment="CENTER" prefHeight="100.0" spacing="20.0" BorderPane.alignment="CENTER">
-			<Button mnemonicParsing="false" onAction="#chooseFile" text="选择文件"/>
-			<Button mnemonicParsing="false" onAction="#refresh" text="刷新"/>
-		</HBox>
+		<VBox BorderPane.alignment="CENTER" prefHeight="100.0" spacing="10.0" alignment="CENTER">
+			<TextField fx:id="filenameText" editable="false"/>
+			<HBox alignment="CENTER" spacing="20.0">
+				<Button mnemonicParsing="false" onAction="#chooseFile" text="选择文件"/>
+				<Button mnemonicParsing="false" onAction="#refresh" text="刷新"/>
+			</HBox>
+		</VBox>
 	</top>
 	<center>
-		<BorderPane BorderPane.alignment="CENTER" fx:id="mainPanel"/>
+		<BorderPane fx:id="mainPanel" BorderPane.alignment="CENTER"/>
 	</center>
 </BorderPane>

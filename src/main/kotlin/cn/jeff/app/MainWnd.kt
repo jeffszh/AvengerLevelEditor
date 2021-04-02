@@ -1,10 +1,15 @@
 package cn.jeff.app
 
+import com.google.gson.GsonBuilder
+import javafx.beans.property.SimpleObjectProperty
 import javafx.fxml.FXMLLoader
 import javafx.geometry.Pos
 import javafx.scene.control.ListView
 import javafx.scene.layout.BorderPane
 import tornadofx.*
+import java.io.FileReader
+import java.io.FileWriter
+import java.io.IOException
 import java.io.RandomAccessFile
 
 class MainWnd : View("复仇魔神角色等级编辑器") {
@@ -12,10 +17,14 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 	companion object {
 		const val defaultFileName = "F:\\FavGames\\超时空英雄传说2复仇魔神完美典藏版\\" +
 				"qskfcms\\games\\super2\\SAVE\\UJ01.SAV"
+		const val configFileName = "AppConfig.json"
+		val gson = GsonBuilder().setPrettyPrinting().create()!!
 	}
 
 	override val root: BorderPane
 	private val j: MainWndJ
+
+	private val workFilename = SimpleObjectProperty(defaultFileName)
 
 	private val roleProperties = MutableList(10) {
 		RoleProperties(it, "角色${it + 1}")
@@ -46,7 +55,7 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 								val s = input.text
 								if (s.isInt()) {
 									role.level = s.toInt()
-									RandomAccessFile(defaultFileName, "rw").use { file ->
+									RandomAccessFile(workFilename.value, "rw").use { file ->
 										role.saveLevelToFile(file)
 									}
 								} else {
@@ -57,7 +66,7 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 						button("設為1級") {
 							action {
 								role.level = 1
-								RandomAccessFile(defaultFileName, "rw").use { file ->
+								RandomAccessFile(workFilename.value, "rw").use { file ->
 									role.saveLevelToFile(file)
 								}
 							}
@@ -68,6 +77,17 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 					}
 				}
 			}
+		}
+
+		j.filenameText.bind(workFilename)
+
+		try {
+			loadAppConfig()
+		} catch (e: IOException) {
+			e.printStackTrace()
+			// 若读取不到配置，将默认配置写到文件，这样下次就能读到了。
+			workFilename.value = defaultFileName
+			saveAppConfig()
 		}
 	}
 
@@ -81,12 +101,32 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 
 	fun refresh() {
 //		information("刷新")
-		RandomAccessFile(defaultFileName, "r").use { file ->
+		RandomAccessFile(workFilename.value, "r").use { file ->
 			roleProperties.forEach { roleProperties ->
 				roleProperties.loadFromFile(file)
 			}
 		}
 		listView.refresh()
+	}
+
+	private class AppConfig {
+		var workFilename = defaultFileName
+	}
+
+	private fun loadAppConfig() {
+		FileReader(configFileName).use { reader ->
+			val appConfig = gson.fromJson(reader, AppConfig::class.java)
+			workFilename.value = appConfig.workFilename
+		}
+	}
+
+	private fun saveAppConfig() {
+		FileWriter(configFileName).use { writer ->
+			val appConfig = AppConfig().apply {
+				workFilename = this@MainWnd.workFilename.value
+			}
+			gson.toJson(appConfig, writer)
+		}
 	}
 
 }
