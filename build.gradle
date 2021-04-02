@@ -1,21 +1,8 @@
-buildscript {
-	ext.kotlin_version = "1.3.61"
-	ext.tornadofx_version = "1.7.17"
-	ext.junit_version = "5.1.0"
-
-	repositories {
-		mavenLocal()
-		mavenCentral()
-	}
-	dependencies {
-		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-		classpath "org.junit.platform:junit-platform-gradle-plugin:1.1.0"
-	}
+plugins {
+	id 'java'
+	id 'org.jetbrains.kotlin.jvm' version '1.3.61'
+	id 'application'
 }
-
-apply plugin: "kotlin"
-apply plugin: "application"
-apply plugin: "org.junit.platform.gradle.plugin"
 
 compileKotlin {
 	kotlinOptions.jvmTarget = "1.8"
@@ -30,34 +17,25 @@ repositories {
 }
 
 dependencies {
-	compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-	compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+	implementation "org.jetbrains.kotlin:kotlin-reflect"
 
-	compile "no.tornado:tornadofx:$tornadofx_version"
+	implementation "no.tornado:tornadofx:1.7.17"
 
 	// https://mvnrepository.com/artifact/com.google.code.gson/gson
 	implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
-
-	testCompile "org.junit.jupiter:junit-jupiter-api:$junit_version"
-	testRuntime "org.junit.jupiter:junit-jupiter-engine:$junit_version"
 }
+
+sourceCompatibility = 1.8
 
 mainClassName = "cn.jeff.app.AvengerLevelEditor"
 
 jar {
 	manifest {
 		attributes(
-				"Class-Path": configurations.compile.collect { it.getName() }.join(" "),
 				"Main-Class": mainClassName
 		)
 	}
-//	from(configurations.compile.collect { entry -> zipTree(entry) }) {
-//		exclude "META-INF/MANIFEST.MF"
-//		exclude "META-INF/*.SF"
-//		exclude "META-INF/*.DSA"
-//		exclude "META-INF/*.RSA"
-//	}
-
 	from {
 		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
 	}
