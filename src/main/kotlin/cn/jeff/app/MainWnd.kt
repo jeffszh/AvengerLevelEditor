@@ -24,7 +24,7 @@ class MainWnd : View("复仇魔神角色等级编辑器") {
 
 	private val workFilename = SimpleObjectProperty(defaultFileName)
 
-	private val roleProperties = MutableList(10) {
+	private val roleProperties = MutableList(20) {
 		RoleProperties(it, "角色${it + 1}")
 	}.observable()
 
