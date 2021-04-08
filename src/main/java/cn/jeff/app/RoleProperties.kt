@@ -17,25 +17,29 @@ data class RoleProperties(
 	}
 
 	fun loadFromFile(file: RandomAccessFile) {
-		file.seek(index.toLong() * recordSize + nameOffset)
-		val ba = mutableListOf<Byte>()
-		for (i in 0 until 8) {
-			val b = file.readByte()
-			if (b == 0.toByte()) {
-				break
-			} else {
-				ba.add(b)
+		if (file.length() >= (index + 1) * recordSize) {
+			file.seek(index.toLong() * recordSize + nameOffset)
+			val ba = mutableListOf<Byte>()
+			for (i in 0 until 8) {
+				val b = file.readByte()
+				if (b == 0.toByte()) {
+					break
+				} else {
+					ba.add(b)
+				}
 			}
-		}
-		name = ba.toByteArray().toString(charSet)
+			name = ba.toByteArray().toString(charSet)
 
-		file.seek(index.toLong() * recordSize + levelOffset)
-		level = file.readByte().toInt()
+			file.seek(index.toLong() * recordSize + levelOffset)
+			level = file.readByte().toInt()
+		}
 	}
 
 	fun saveLevelToFile(file: RandomAccessFile) {
-		file.seek(index.toLong() * recordSize + levelOffset)
-		file.writeByte(level)
+		if (file.length() >= (index + 1) * recordSize) {
+			file.seek(index.toLong() * recordSize + levelOffset)
+			file.writeByte(level)
+		}
 	}
 
 }
