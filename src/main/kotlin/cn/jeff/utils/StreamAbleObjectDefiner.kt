@@ -3,6 +3,7 @@ package cn.jeff.utils
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
 import java.io.IOException
 import java.nio.charset.Charset
+import kotlin.math.roundToLong
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.javaField
 
@@ -45,6 +46,7 @@ class StreamAbleObjectDefiner(
 //				println(field.type)
 
 				when (field.type) {
+					// 整数
 					in setOf(Int::class.java, Long::class.java,
 							java.lang.Integer::class.java, java.lang.Long::class.java) -> {
 						println("${field.name} 是 ${field.type}")
@@ -70,6 +72,38 @@ class StreamAbleObjectDefiner(
 						}
 						bs.write(ba)
 					}
+
+					// 定点小数
+					in setOf(Float::class.java, Double::class.java,
+							java.lang.Float::class.java, java.lang.Double::class.java) -> {
+						if (fieldDef.fieldSize == null) {
+							throw StreamingException("${field.name} - 非整数数值必须指定长度！")
+						}
+						if (fieldDef.fractionLen == null) {
+							throw StreamingException("${field.name} - 必须指定小数位数！")
+						}
+						val doubleValue = (fieldDef.field.getter.call(managedObject) as Number).toDouble()
+						var p = 1
+						repeat(fieldDef.fractionLen) {
+							p *= 10
+						}
+						var fieldValue = (doubleValue * p).roundToLong()
+						val ba = ByteArray(fieldDef.fieldSize)
+						val factor = (if (fieldDef.isBcd) 10 else 16).toLong()
+						for (i in ba.indices) {
+							val l = fieldValue % factor
+							fieldValue /= factor
+							val h = fieldValue % factor
+							fieldValue /= factor
+							ba[i] = ((h shl 4) + l).toByte()
+						}
+						if (fieldDef.isBigEndian) {
+							ba.reverse()
+						}
+						bs.write(ba)
+					}
+
+					// 字符串
 					String::class.java -> {
 						println("${field.name} 是字符串")
 						val fieldSize = fieldDef.fieldSize ?: throw StreamingException(

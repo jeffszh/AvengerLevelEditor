@@ -8,7 +8,8 @@ import java.nio.charset.Charset
 data class Book(
 		var bookName: String?,
 		var pageCount: Long?,
-		var year: Int
+		var year: Int,
+		var rate: Double
 ) {
 
 	private val definer = StreamAbleObjectDefiner(
@@ -19,6 +20,11 @@ data class Book(
 					isBcd = true),
 			FieldDef(Book::year,
 					isBcd = true,
+					isBigEndian = true),
+			FieldDef(Book::rate,
+					fieldSize = 5,
+					fractionLen = 3,
+					isBcd = true,
 					isBigEndian = true)
 	)
 
@@ -28,13 +34,15 @@ data class Book(
 
 }
 
+@Suppress("DEPRECATION")
+fun ByteOutputStream.asByteArray(): ByteArray = toByteArray()
+
 fun main() {
-	val book1 = Book("天書", 1256, 2021)
+	val book1 = Book("天書", 1256, 2021, 345.6789)
 	println(book1)
 	val bs = ByteOutputStream(0)
 	book1.saveToByteStream(bs)
-	@Suppress("DEPRECATION")
-	println(bs.toByteArray().joinToString {
+	println(bs.asByteArray().joinToString {
 		String.format("%02X", it)
 	})
 }
