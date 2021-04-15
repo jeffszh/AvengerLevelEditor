@@ -2,6 +2,10 @@ package cn.jeff.utils
 
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
 import java.nio.charset.Charset
+import kotlin.reflect.*
+import kotlin.reflect.jvm.javaField
+import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaSetter
 
 /**
  * # Stream-able object definer
@@ -19,7 +23,7 @@ class StreamAbleObjectDefiner(
 //	}
 
 	class FieldDef(
-			val fieldName: String,
+			val field: KMutableProperty1<out Any, out Any?>,
 			val fieldSize: Int? = null,
 			val fractionLen: Int? = null,
 			val charset: Charset? = null,
@@ -29,15 +33,17 @@ class StreamAbleObjectDefiner(
 	)
 
 	fun saveToByteStream(bs: ByteOutputStream) {
-		var offset = 0
+//		var offset = 0
 		fieldDefs.forEach { fieldDef ->
-			val field = managedObject.javaClass.getDeclaredField(fieldDef.fieldName)
+			val field = fieldDef.field.javaField!!
+			println(field.type)
 			when (field.type) {
-				in setOf(Int::class.java, Long::class.java) -> {
-					println("${fieldDef.fieldName} 是 ${field.type}")
+				in setOf(Int::class.java, Long::class.java,
+						java.lang.Integer::class.java, java.lang.Long::class.java) -> {
+					println("${field.name} 是 ${field.type}")
 				}
 				String::class.java -> {
-					println("${fieldDef.fieldName} 是字符串")
+					println("${field.name} 是字符串")
 				}
 			}
 		}
