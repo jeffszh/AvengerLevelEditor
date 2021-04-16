@@ -1,6 +1,6 @@
 package cn.jeff.utils
 
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.charset.Charset
 import kotlin.math.roundToLong
@@ -71,11 +71,11 @@ class StreamAbleObjectDefiner(
 			val readOnly: Boolean = false
 	)
 
-	fun saveToByteStream(bs: ByteOutputStream) {
+	fun saveToByteStream(bs: ByteArrayOutputStream) {
 //		var offset = 0
 		fieldDefs.forEach { fieldDef ->
-			// 实际上ByteOutputStream不能跳过若干字节，
-			// 所以saveToByteStream不能处理只读字段。
+			// 实际上 ByteArrayOutputStream 不能跳过若干字节，
+			// 所以 saveToByteStream 不能处理只读字段。
 			if (fieldDef.readOnly) {
 				throw StreamingException("saveToByteStream()不能处理只读字段。")
 			}
@@ -165,6 +165,9 @@ class StreamAbleObjectDefiner(
 			}
 		}
 	}
+
+//	fun loadFromByteStream(bs: ByteArrayInputStream) {
+//	}
 
 	class StreamingException(msg: String) : IOException(msg)
 
