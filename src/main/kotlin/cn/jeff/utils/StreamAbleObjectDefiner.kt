@@ -19,6 +19,44 @@ class StreamAbleObjectDefiner(
 		private val managedObject: Any,
 		private vararg val fieldDefs: FieldDef) {
 
+	companion object {
+
+		fun bcdLittleEndianField(
+				field: KMutableProperty1<out Any, out Number>,
+				fieldSize: Int,
+				fractionLen: Int? = null,
+				hardOffset: Int? = null,
+				readOnly: Boolean = false
+		) = FieldDef(
+				field,
+				fieldSize,
+				fractionLen,
+				null,
+				isBigEndian = false,
+				isBcd = true,
+				hardOffset = hardOffset,
+				readOnly = readOnly
+		)
+
+		fun bcdBigEndianField(
+				field: KMutableProperty1<out Any, out Number>,
+				fieldSize: Int,
+				fractionLen: Int? = null,
+				hardOffset: Int? = null,
+				readOnly: Boolean = false
+		) = FieldDef(
+				field,
+				fieldSize,
+				fractionLen,
+				null,
+				isBigEndian = true,
+				isBcd = true,
+				hardOffset = hardOffset,
+				readOnly = readOnly
+		)
+
+	}
+
 //	constructor(managedObject: Any) {
 //	}
 
