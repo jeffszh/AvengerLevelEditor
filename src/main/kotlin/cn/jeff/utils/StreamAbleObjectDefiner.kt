@@ -1,8 +1,6 @@
 package cn.jeff.utils
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.IOException
+import java.io.*
 import java.nio.charset.Charset
 import kotlin.math.pow
 import kotlin.math.roundToLong
@@ -71,16 +69,40 @@ class StreamAbleObjectDefiner(
 	)
 
 	fun saveToByteStream(bs: ByteArrayOutputStream) {
-		fieldDefs.forEach { fieldDef ->
+		saveTo(object : AbstractWriter() {
 			// 实际上 ByteArrayOutputStream 不能跳过若干字节，
 			// 所以 saveToByteStream 不能处理只读字段。
-			if (fieldDef.readOnly) {
-				throw StreamingException("saveToByteStream()不能处理只读字段。")
+			override val supportReadonly = false
+
+			override fun seek(n: Int) {
+				// 用Skip来代替seek。
+				skip(n - bs.size())
+			}
+
+			override fun skip(n: Int) {
+				// ByteArrayOutputStream只能用空写来代替跳过。
+				write(ByteArray(n))
+			}
+
+			override fun write(bytes: ByteArray) {
+				bs.write(bytes)
+			}
+
+			override fun write(bytes: ByteArray, start: Int, len: Int) {
+				bs.write(bytes, start, len)
+			}
+		})
+	}
+
+	private fun saveTo(writer: AbstractWriter) {
+		fieldDefs.forEach { fieldDef ->
+			if (fieldDef.readOnly && !writer.supportReadonly) {
+				throw StreamingException("不能处理只读字段。")
 			}
 
 			// 处理指定偏移量
 			if (fieldDef.hardOffset != null) {
-				bs.write(ByteArray(fieldDef.hardOffset - bs.size()))
+				writer.seek(fieldDef.hardOffset)
 			}
 
 			val field = fieldDef.field.javaField!!
@@ -110,7 +132,7 @@ class StreamAbleObjectDefiner(
 					if (fieldDef.isBigEndian) {
 						ba.reverse()
 					}
-					bs.write(ba)
+					writer.write(ba)
 				}
 
 				// 定点小数
@@ -137,7 +159,7 @@ class StreamAbleObjectDefiner(
 					if (fieldDef.isBigEndian) {
 						ba.reverse()
 					}
-					bs.write(ba)
+					writer.write(ba)
 				}
 
 				// 字符串
@@ -150,10 +172,10 @@ class StreamAbleObjectDefiner(
 					val charset = fieldDef.charset ?: Charsets.UTF_8
 					val ba = fieldValue.toByteArray(charset)
 					if (ba.size < fieldSize) {
-						bs.write(ba)
-						bs.write(ByteArray(fieldSize - ba.size))
+						writer.write(ba)
+						writer.skip(fieldSize - ba.size)
 					} else {
-						bs.write(ba, 0, fieldSize)
+						writer.write(ba, 0, fieldSize)
 					}
 				}
 			}
@@ -161,11 +183,25 @@ class StreamAbleObjectDefiner(
 	}
 
 	fun loadFromByteStream(bs: ByteArrayInputStream) {
+		loadFrom(object : AbstractReader() {
+
+			override fun seek(n: Int) {
+				// 用reset和skip实现seek，前提是没人调用过mark。
+				bs.reset()
+				bs.skip(n.toLong())
+			}
+
+			override fun read(bytes: ByteArray): Int =
+					bs.read(bytes)
+
+		})
+	}
+
+	private fun loadFrom(reader: AbstractReader) {
 		fieldDefs.forEach { fieldDef ->
 			// 处理指定偏移量
 			if (fieldDef.hardOffset != null) {
-				bs.reset()
-				bs.skip(fieldDef.hardOffset.toLong())
+				reader.seek(fieldDef.hardOffset)
 			}
 
 			val field = fieldDef.field.javaField!!
@@ -183,7 +219,7 @@ class StreamAbleObjectDefiner(
 								else -> throw StreamingException("不可能运行到这里。")
 							}
 					val ba = ByteArray(fieldSize)
-					bs.read(ba)
+					reader.read(ba)
 					if (!fieldDef.isBigEndian) {
 						// 总是转换为大端，因为大端比小端容易处理些。
 						ba.reverse()
@@ -217,7 +253,7 @@ class StreamAbleObjectDefiner(
 						throw StreamingException("${field.name} - 必须指定小数位数！")
 					}
 					val ba = ByteArray(fieldDef.fieldSize)
-					bs.read(ba)
+					reader.read(ba)
 					val p = 10.0.pow(fieldDef.fractionLen)
 					if (!fieldDef.isBigEndian) {
 						// 总是转换为大端，因为大端比小端容易处理些。
@@ -249,7 +285,7 @@ class StreamAbleObjectDefiner(
 							"${field.name} - 字符串必须指定长度！")
 					val charset = fieldDef.charset ?: Charsets.UTF_8
 					val ba = ByteArray(fieldSize)
-					bs.read(ba)
+					reader.read(ba)
 					val ba2 = ba.takeWhile {
 						it != 0.toByte()
 					}.toByteArray()
@@ -262,5 +298,18 @@ class StreamAbleObjectDefiner(
 	}
 
 	class StreamingException(msg: String) : IOException(msg)
+
+	private abstract class AbstractReader {
+		abstract fun seek(n: Int)
+		abstract fun read(bytes: ByteArray): Int
+	}
+
+	private abstract class AbstractWriter {
+		abstract val supportReadonly: Boolean
+		abstract fun seek(n: Int)
+		abstract fun skip(n: Int)
+		abstract fun write(bytes: ByteArray)
+		abstract fun write(bytes: ByteArray, start: Int, len: Int)
+	}
 
 }

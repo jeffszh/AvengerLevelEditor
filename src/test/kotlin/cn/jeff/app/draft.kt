@@ -2,13 +2,31 @@ package cn.jeff.app
 
 import kotlin.math.pow
 
-infix fun Int.pow(p: Int): Int =
-		if (p <= 0) 1 else this * (this pow (p - 1))
+//infix fun Int.pow(p: Int): Int =
+//		if (p <= 0) 1 else this * (this pow (p - 1))
+
+// 改用尾递归来实现
+fun intPow(base: Int, p: Int, v: Int): Int =
+		if (p <= 0) v else intPow(base, p - 1, base * v)
+
+infix fun Int.pow(p: Int) = intPow(this, p, 1)
+
+// 用集合来实现
+infix fun Int.power(p: Int): Int =
+		(1..p + 1).reduce { acc, _ ->
+			acc * this
+		}
 
 fun main() {
 	println("开始。")
 	println(3 pow 4)
 	println(2.0.pow(5))
+	println(5 power 4)
+	println(5 power 3)
+	println(5 power 2)
+	println(5 power 1)
+	println(5 power 0)
+	println("---------------------")
 	val ba = ByteArray(12)
 	ba[0] = 65
 	ba[1] = 65
